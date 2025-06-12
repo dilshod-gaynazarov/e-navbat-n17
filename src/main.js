@@ -4,6 +4,7 @@ import { connectDB } from './db/index.js';
 import { createSuperAdmin } from './db/create-superadmin.js';
 import adminRouter from './routes/admin.route.js';
 import doctorRouter from './routes/doctor.route.js';
+import graphRouter from './routes/graph.route.js';
 config();
 
 const app = express();
@@ -14,5 +15,6 @@ await connectDB();
 await createSuperAdmin();
 app.use('/admin', adminRouter);
 app.use('/doctor', doctorRouter);
+app.use('/graph', graphRouter);
 
 app.listen(PORT, () => console.log('server running on port', PORT));

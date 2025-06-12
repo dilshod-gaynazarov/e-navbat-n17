@@ -2,7 +2,7 @@ import Admin from '../models/admin.model.js';
 import { handleError } from '../helpers/error-handle.js';
 import { Crypto } from '../utils/encrypt-decrypt.js';
 import { successRes } from '../helpers/success-response.js';
-import { createValidator, updateValidator } from '../validation/admin.validation.js';
+import { createAdminValidator, updateAdminValidator } from '../validation/admin.validation.js';
 import { isValidObjectId } from 'mongoose';
 
 const crypto = new Crypto();
@@ -10,7 +10,7 @@ const crypto = new Crypto();
 export class AdminController {
     async createAdmin(req, res) {
         try {
-            const { value, error } = createValidator(req.body);
+            const { value, error } = createAdminValidator(req.body);
             if (error) {
                 return handleError(res, error, 422);
             }
@@ -51,7 +51,7 @@ export class AdminController {
         try {
             const id = req.params.id;
             const admin = await AdminController.findAdminById(res, id);
-            const { value, error } = updateValidator(req.body);
+            const { value, error } = updateAdminValidator(req.body);
             if (error) {
                 return handleError(res, error, 422);
             }
