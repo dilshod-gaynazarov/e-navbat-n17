@@ -76,9 +76,7 @@ export class PatientController {
                 }
             })
             cache.set(email, otp, 120);
-            return successRes(res, {
-                message: 'OTP sent successfully to email'
-            });
+            return successRes(res, {});
         } catch (error) {
             return handleError(res, error);
         }
@@ -98,6 +96,7 @@ export class PatientController {
             if (!cacheOTP || cacheOTP != value.otp) {
                 return handleError(res, 'OTP expired', 400);
             }
+            cache.del(value.email);
             const payload = { id: patient._id };
             const accessToken = await token.generateAccessToken(payload);
             const refreshToken = await token.generateRefreshToken(payload);
@@ -109,7 +108,52 @@ export class PatientController {
             return successRes(res, {
                 data: patient,
                 token: accessToken
-            }, 201);
+            }, 200);
+        } catch (error) {
+            return handleError(res, error);
+        }
+    }
+
+    async newAccessToken(req, res) {
+        try {
+            const refreshToken = req.cookies?.refreshTokenPatient;
+            if (!refreshToken) {
+                return handleError(res, 'Refresh token epxired', 400);
+            }
+            const decodedToken = await token.verifyToken(refreshToken, config.REFRESH_TOKEN_KEY);
+            if (!decodedToken) {
+                return handleError(res, 'Invalid token', 400);
+            }
+            const patient = await Patient.findById(decodedToken.id);
+            if (!patient) {
+                return handleError(res, 'Patient not found', 404);
+            }
+            const payload = { id: patient._id };
+            const accessToken = await token.generateAccessToken(payload);
+            return successRes(res, {
+                token: accessToken
+            });
+        } catch (error) {
+            return handleError(res, error);
+        }
+    }
+
+    async logOut(req, res) {
+        try {
+            const refreshToken = req.cookies?.refreshTokenPatient;
+            if (!refreshToken) {
+                return handleError(res, 'Refresh token epxired', 400);
+            }
+            const decodedToken = await token.verifyToken(refreshToken, config.REFRESH_TOKEN_KEY);
+            if (!decodedToken) {
+                return handleError(res, 'Invalid token', 400);
+            }
+            const patient = await Patient.findById(decodedToken.id);
+            if (!patient) {
+                return handleError(res, 'Patient not found', 404);
+            }
+            res.clearCookie('refreshTokenPatient');
+            return successRes(res, {});
         } catch (error) {
             return handleError(res, error);
         }
